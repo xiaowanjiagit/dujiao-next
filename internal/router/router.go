@@ -243,10 +243,6 @@ func SetupRouter(cfg *config.Config, c *provider.Container) *gin.Engine {
 				authorized.GET("/dashboard/rankings", adminHandler.GetDashboardRankings)
 				authorized.GET("/dashboard/inventory-alerts", adminHandler.GetDashboardInventoryAlerts)
 
-				// 广告代理
-				authorized.GET("/ads/render/:slotCode", adminHandler.GetAdRender)
-				authorized.POST("/ads/impression", adminHandler.PostAdImpression)
-
 				// 商品管理
 				authorized.GET("/products", adminHandler.GetAdminProducts)
 				authorized.GET("/products/:id", adminHandler.GetAdminProduct)
