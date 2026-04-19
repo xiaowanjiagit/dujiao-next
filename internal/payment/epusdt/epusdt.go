@@ -49,7 +49,7 @@ const (
 	epusdtChannelTypeUSDCTRC20 = "usdc-trc20"
 	epusdtChannelTypeTRX       = "trx"
 
-	epusdtCreateTransactionPath = "/api/v1/order/create-transaction"
+	epusdtCreateTransactionPath = "/payments/epusdt/v1/order/create-transaction"
 	epusdtStatusSuccessMsg      = "status is not success"
 )
 
