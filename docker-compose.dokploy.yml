@@ -23,15 +23,6 @@ services:
       - dokploy-network
       - postgres-net
       - redis-net
-    labels:
-      - traefik.enable=true
-      - traefik.docker.network=dokploy-network
-      - traefik.http.routers.dujiao-api.rule=(Host(`aicdkshop.com`) || Host(`www.aicdkshop.com`) || Host(`admin.aicdkshop.com`)) && (PathPrefix(`/api`) || PathPrefix(`/uploads`))
-      - traefik.http.routers.dujiao-api.entrypoints=websecure
-      - traefik.http.routers.dujiao-api.tls=true
-      - traefik.http.routers.dujiao-api.tls.certresolver=letsencrypt
-      - traefik.http.routers.dujiao-api.priority=100
-      - traefik.http.services.dujiao-api.loadbalancer.server.port=8080
 
 volumes:
   dujiao_uploads:
