@@ -133,6 +133,9 @@ func TestApplyProviderPaymentUsesGatewayOrderNoForEpusdt(t *testing.T) {
 	}
 
 	var gotOrderID string
+	var gotToken string
+	var gotNetwork string
+	var gotCurrency string
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		defer r.Body.Close()
 		var payload map[string]interface{}
@@ -140,6 +143,15 @@ func TestApplyProviderPaymentUsesGatewayOrderNoForEpusdt(t *testing.T) {
 			t.Fatalf("decode request failed: %v", err)
 		}
 		gotOrderID = strings.TrimSpace(payload["order_id"].(string))
+		gotToken = strings.TrimSpace(payload["token"].(string))
+		gotNetwork = strings.TrimSpace(payload["network"].(string))
+		gotCurrency = strings.TrimSpace(payload["currency"].(string))
+		if _, exists := payload["trade_type"]; exists {
+			t.Fatalf("trade_type should not be sent")
+		}
+		if _, exists := payload["fiat"]; exists {
+			t.Fatalf("fiat should not be sent")
+		}
 		w.Header().Set("Content-Type", "application/json")
 		_, _ = w.Write([]byte(`{"status_code":200,"message":"ok","data":{"trade_id":"TRX-1001","order_id":"` + gotOrderID + `","amount":"50.00","actual_amount":"7.00","token":"USDT","expiration_time":1800,"payment_url":"https://pay.example.com/checkout"}}`))
 	}))
@@ -153,8 +165,7 @@ func TestApplyProviderPaymentUsesGatewayOrderNoForEpusdt(t *testing.T) {
 		ConfigJSON: models.JSON{
 			"gateway_url": server.URL,
 			"auth_token":  "token-001",
-			"trade_type":  "usdt.trc20",
-			"fiat":        "CNY",
+			"currency":    "CNY",
 			"notify_url":  "https://example.com/callback",
 			"return_url":  "https://example.com/pay-return",
 		},
@@ -201,6 +212,15 @@ func TestApplyProviderPaymentUsesGatewayOrderNoForEpusdt(t *testing.T) {
 	}
 	if gotOrderID != payment.GatewayOrderNo {
 		t.Fatalf("epusdt order_id = %s, want %s", gotOrderID, payment.GatewayOrderNo)
+	}
+	if gotToken != "usdt" {
+		t.Fatalf("token = %s, want usdt", gotToken)
+	}
+	if gotNetwork != "tron" {
+		t.Fatalf("network = %s, want tron", gotNetwork)
+	}
+	if gotCurrency != "CNY" {
+		t.Fatalf("currency = %s, want CNY", gotCurrency)
 	}
 	if payment.ProviderRef != "TRX-1001" {
 		t.Fatalf("provider ref = %s, want TRX-1001", payment.ProviderRef)

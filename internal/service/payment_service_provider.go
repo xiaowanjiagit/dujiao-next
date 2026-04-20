@@ -161,10 +161,6 @@ func (s *PaymentService) applyProviderPayment(input CreatePaymentInput, order *m
 		if err != nil {
 			return fmt.Errorf("%w: %v", ErrPaymentChannelConfigInvalid, err)
 		}
-		// 如果配置中没有指定 trade_type，根据 channel_type 自动设置
-		if strings.TrimSpace(cfg.TradeType) == "" {
-			cfg.TradeType = epusdt.ResolveTradeType(channel.ChannelType)
-		}
 		if err := epusdt.ValidateConfig(cfg); err != nil {
 			return fmt.Errorf("%w: %v", ErrPaymentChannelConfigInvalid, err)
 		}
@@ -176,15 +172,16 @@ func (s *PaymentService) applyProviderPayment(input CreatePaymentInput, order *m
 		returnURL = appendURLQuery(returnURL, buildPaymentReturnQuery(input, order, "epusdt_return", ""))
 		subject := buildOrderSubject(order)
 		result, err := epusdt.CreatePayment(gatewayCtx, cfg, epusdt.CreateInput{
-			OrderNo:   providerOrderNo,
-			Amount:    payment.Amount.String(),
-			Name:      subject,
-			NotifyURL: notifyURL,
-			ReturnURL: returnURL,
+			OrderNo:     providerOrderNo,
+			Amount:      payment.Amount.String(),
+			Name:        subject,
+			NotifyURL:   notifyURL,
+			ReturnURL:   returnURL,
+			ChannelType: channel.ChannelType,
 		})
 		if err != nil {
 			switch {
-			case errors.Is(err, epusdt.ErrConfigInvalid):
+			case errors.Is(err, epusdt.ErrConfigInvalid), errors.Is(err, epusdt.ErrChannelTypeNotSupport):
 				return fmt.Errorf("%w: %v", ErrPaymentChannelConfigInvalid, err)
 			case errors.Is(err, epusdt.ErrRequestFailed):
 				return ErrPaymentGatewayRequestFailed
